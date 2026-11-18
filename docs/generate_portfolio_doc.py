@@ -293,13 +293,14 @@ doc.add_page_break()
 doc.add_heading("Contents", level=1)
 contents = [
     ("Part 1", "What this is, in simple words"),
-    ("Part 2", "How it works — the six-stage pipeline"),
-    ("Part 3", "Tech stack, deep dive — every component and why it exists"),
-    ("Part 4", "What we deliberately did NOT build — and why"),
-    ("Part 5", "Is this legitimately an “AI project”? (The honest inventory)"),
-    ("Part 6", "The honesty ledger — measured, not claimed"),
-    ("Part 7", "25 questions a senior PM will ask — with real answers"),
-    ("Part 8", "Limitations, risks and the roadmap I would defend"),
+    ("Part 2", "What a typical analyzer does — and everything ResumeIQ adds"),
+    ("Part 3", "How it works — the six-stage pipeline"),
+    ("Part 4", "Tech stack, deep dive — every component and why it exists"),
+    ("Part 5", "What we deliberately did NOT build — and why"),
+    ("Part 6", "Is this legitimately an “AI project”? (The honest inventory)"),
+    ("Part 7", "The honesty ledger — measured, not claimed"),
+    ("Part 8", "25 questions a senior PM will ask — with real answers"),
+    ("Part 9", "Limitations, risks and the roadmap I would defend"),
     ("Appendix", "How to reproduce every number in this document"),
 ]
 for part, desc in contents:
@@ -315,7 +316,7 @@ for part, desc in contents:
     body.font.size = Pt(10)
 hr(doc)
 p = doc.add_paragraph()
-run = p.add_run("Reading time: ~25 minutes. If you only read Part 5 and Part 7, you have the whole argument.")
+run = p.add_run("Reading time: ~25 minutes. If you only read Part 6 and Part 8, you have the whole argument.")
 run.font.italic = True
 run.font.size = Pt(9)
 run.font.color.rgb = MUTED
@@ -354,7 +355,43 @@ make_table(
 )
 
 # ================= PART 2 =================
-doc.add_heading("Part 2 — How it works, stage by stage", level=1)
+doc.add_heading("Part 2 — What a typical resume analyzer does — and everything ResumeIQ adds", level=1)
+
+p = doc.add_paragraph()
+run = p.add_run("Strip away the marketing and a typical resume analyzer is a five-step trick: upload file → regexes/keywords → a single unexplained percentage → a cheery paragraph → “apply anyway”. ResumeIQ is the same skeleton with every joint made trustworthy, inspectable and useful. Side by side:")
+run.font.italic = True
+run.font.color.rgb = MUTED
+
+make_table(
+    doc,
+    ["What a typical analyzer does", "What ResumeIQ does instead — and why it matters"],
+    [
+        ("One opaque score (“72% match!”) with no breakdown", "A visible weighted rubric (required skills 40, experience 25, responsibilities 20, preferred 10, qualifications 5), renormalised honestly for N/A dimensions, printed in the product — you can audit the arithmetic, not just receive it."),
+        ("Keyword hit-counting masquerading as “AI”", "Skills are canonicalised onto a curated taxonomy and matched with alias and morphology tolerance (“user interviews” counts as user research). Then split honestly into matched-in-context vs listed-in-a-skills-table vs no-evidence — the distinction that separates real capability from keyword soup."),
+        ("Paraphrases your own resume back at you as “insights”", "Every conclusion carries the verbatim line(s) it rests on. No line exists → the UI says “no direct evidence found”. Abstention is a feature — inventing evidence is the one failure we cannot forgive."),
+        ("Generic advice (“add more keywords”, “quantify results”)", "Actions are grounded in your lines: rewrite cards cite the exact bullet to fix; the hard-gaps triage card ranks what to close before you apply; recommendations never leave you at a blank page."),
+        ("Stops at the verdict — the score is the product", "The verdict is the entry point. The Interview Evidence Map then generates the probes you will actually face — strong / thin / exposed — anchored to the exact resume lines being probed. Diagnosis is commodity; we ship the rehearsal."),
+        ("Different answer every run (unseeded LLM sampling)", "Determinism as a feature: temperature 0 + fixed seed + content-hash JD-profile cache → identical inputs yield byte-identical reports, forever. That is testable, and we test it."),
+        ("Cloud upload of your resume, quietly retained", "Local-first default (Ollama), zero persistence anywhere, aggregate-only metrics, and a hosted demo that discloses exactly what transits the third party — the pill in the header tells you the truth in one line."),
+        ("Choked by real-world PDFs (garbled columns, tables, scans)", "Multi-column/tables-aware extraction with row-level de-duplication, zero duplicate lines on both single- and two-column layouts, and offline neural OCR for image-only PDFs — verified on real resumes, not synthetic samples."),
+        ("No idea if its own numbers mean anything", "An eval harness ships in the repo: 25 hand-labeled skill statuses (100% accuracy on the dev set), groundedness as a published metric, weights labelled as uncalibrated hypotheses — measurement before marketing."),
+        ("Vanity progress bars and confetti", "A telemetry drawer with only honest, variable numbers: groundedness by construction, real abstention counts, which engine actually ran, cost per analysis ($0.00). Nothing that can’t move, nothing that always reads " + "100%, no metric used as decoration."),
+    ],
+    [2.15, 4.55],
+)
+
+doc.add_heading("Why it stands out — the three-sentence answer you can say in an interview", level=2)
+callout(doc, "“Typical analyzers score documents. ResumeIQ measures fit the way a careful interviewer does — against the resume’s own evidence — then rehearses the conversation that score will trigger. And it shows its working: every number is either quoted from your file, computed by an auditable rubric, or labelled as an unvalidated hypothesis.”")
+
+doc.add_heading("Who this is actually different for", level=2)
+bullets(doc, [
+    ("The candidate who applies tonight:", " they learn — in two minutes — exactly what to fix first and which questions to expect, not “update your skills section”."),
+    ("The PM evaluating it in an interview loop:", " they see a product that refuses to fake metrics, abstains when evidence is absent, survives its own failure modes, and discloses its architecture instead of hiding it."),
+    ("The privacy-conscious senior engineer:", " they can run the whole thing on their own machine with a 3B model — or even with no model at all — and read every line of code that touches their data."),
+])
+
+# ================= PART 3 =================
+doc.add_heading("Part 3 — How it works, stage by stage", level=1)
 p = doc.add_paragraph()
 p.add_run("The pipeline is deliberately boring. Boring is how you get a product you can explain in an interview without hand-waving. Six stages, one direction, no loops, no agents pretending to be a committee:")
 
@@ -376,8 +413,8 @@ run = p.add_run("Notice where AI is and is not: the model may interpret language
 run.font.bold = True
 run.font.color.rgb = ACCENT_RGB
 
-# ================= PART 3 =================
-doc.add_heading("Part 3 — Tech stack, deep dive", level=1)
+# ================= PART 4 =================
+doc.add_heading("Part 4 — Tech stack, deep dive", level=1)
 
 doc.add_heading("3.1  The moving parts, and why each exists", level=2)
 make_table(
@@ -422,7 +459,7 @@ make_table(
 )
 
 # ================= PART 4 =================
-doc.add_heading("Part 4 — What we deliberately did NOT build, and why", level=1)
+doc.add_heading("Part 5 — What we deliberately did NOT build, and why", level=1)
 p = doc.add_paragraph()
 p.add_run("Every AI PM is asked: “why not RAG? why not agents? why not fine-tune?” Here are the real answers, in the order they come up:")
 make_table(
@@ -443,7 +480,7 @@ make_table(
 )
 
 # ================= PART 5 =================
-doc.add_heading("Part 5 — Is this legitimately an “AI project”? Yes — precisely, and here is the inventory", level=1)
+doc.add_heading("Part 6 — Is this legitimately an “AI project”? Yes — precisely, and here is the inventory", level=1)
 p = doc.add_paragraph()
 p.add_run("Interviews will probe whether the “AI” is real. Here is the exact ledger — what is AI, what is ML, and what is deliberately not:")
 
@@ -472,7 +509,7 @@ bullets(doc, [
 ])
 
 # ================= PART 6 =================
-doc.add_heading("Part 6 — The honesty ledger: what is measured, what is claimed", level=1)
+doc.add_heading("Part 7 — The honesty ledger: what is measured, what is claimed", level=1)
 make_table(
     doc,
     ["Claim", "Status", "Evidence"],
@@ -492,7 +529,7 @@ make_table(
 )
 
 # ================= PART 7 =================
-doc.add_heading("Part 7 — 25 questions a senior PM will ask (and the real answers)", level=1)
+doc.add_heading("Part 8 — 25 questions a senior PM will ask (and the real answers)", level=1)
 p = doc.add_paragraph()
 p.add_run("Each answer is written to be said out loud in an interview, not read silently from a script. Lengths are deliberate: a senior answer is 40–60 seconds of structured speech.")
 
@@ -573,7 +610,7 @@ ask(doc, 25, "If you were interviewing you for AI PM, what are you hoping we ask
     "The uncomfortable one: “Show me something you got wrong.” Because the honest answer is the product: my first parser duplicated every table cell, my first scorer re-weighted itself silently on N/A dimensions, the 3B model invented skills until I added the lexicon gate, and llama-3.3-70b disappeared from Groq mid-build — four failures, four permanent fixes, all in the git history, all visible. I don't ship AI products — I ship AI products that survive their first contact with reality, and I have the scars catalogued to prove it.")
 
 # ================= PART 8 =================
-doc.add_heading("Part 8 — Limitations, risks and the roadmap I would defend", level=1)
+doc.add_heading("Part 9 — Limitations, risks and the roadmap I would defend", level=1)
 
 doc.add_heading("8.1  Known limits — and what they teach", level=2)
 bullets(doc, [

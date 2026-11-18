@@ -112,6 +112,10 @@ function App() {
   const [backendMode, setBackendMode] = useState<BackendMode | "loading">("loading");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+  const requiredStripRef = useRef<HTMLDivElement>(null);
+  const preferredStripRef = useRef<HTMLDivElement>(null);
+  const scrollStrip = (ref: React.RefObject<HTMLDivElement | null>, dir: 1 | -1) =>
+    ref.current?.scrollBy({ left: dir * 448, behavior: "smooth" });
 
   useEffect(() => {
     fetchHealth().then((h) => setBackendMode(h?.llm_mode ?? "unreachable"));
@@ -438,14 +442,25 @@ function App() {
                   </div>
                   <div className="skill-lanes">
                     <div className="skill-lane">
-                      <p className="skill-group">REQUIRED <span>{required.length}</span><em className="lane-hint">scroll →</em></p>
-                      <div className="skill-strip" tabIndex={0} aria-label="Required skills — horizontal list, scroll right">
+                      <p className="skill-group">REQUIRED <span>{required.length}</span>
+                        <span className="lane-actions">
+                          <em className="lane-hint">scroll</em>
+                          <button className="lane-arrow" onClick={() => scrollStrip(requiredStripRef, -1)} aria-label="Scroll required skills left">‹</button>
+                          <button className="lane-arrow" onClick={() => scrollStrip(requiredStripRef, 1)} aria-label="Scroll required skills right">›</button>
+                        </span>
+                      </p>
+                      <div className="skill-strip" ref={requiredStripRef} tabIndex={0} aria-label="Required skills — horizontal list, scroll right">
                         {required.map((s) => <SkillCard key={`r-${s.skill}`} skill={s} />)}
                       </div>
                     </div>
                     <div className="skill-lane">
-                      <p className="skill-group">PREFERRED <span>{preferred.length}</span><em className="lane-hint">scroll →</em></p>
-                      <div className="skill-strip" tabIndex={0} aria-label="Preferred skills — horizontal list, scroll right">
+                      <p className="skill-group">PREFERRED <span>{preferred.length}</span>
+                        <span className="lane-actions">
+                          <button className="lane-arrow" onClick={() => scrollStrip(preferredStripRef, -1)} aria-label="Scroll preferred skills left">‹</button>
+                          <button className="lane-arrow" onClick={() => scrollStrip(preferredStripRef, 1)} aria-label="Scroll preferred skills right">›</button>
+                        </span>
+                      </p>
+                      <div className="skill-strip" ref={preferredStripRef} tabIndex={0} aria-label="Preferred skills — horizontal list, scroll right">
                         {preferred.map((s) => <SkillCard key={`p-${s.skill}`} skill={s} />)}
                       </div>
                     </div>
@@ -517,9 +532,6 @@ function App() {
                     <span className="tstat-foot">{analysis.meta.latency_ms.toLocaleString()} ms · local or free-tier inference · identical inputs are served from cache (~0 ms).</span>
                   </div>
                 </div>
-                <p className="telemetry-north">
-                  <b>Not yet measured (on purpose):</b> our North Star — <i>% of exposed/thin claims converted into evidence-backed bullets by the candidate</i> — needs instrumentation we don’t have yet. It stays a hypothesis until user testing gives us the denominator; inventing a number would be decoration, not telemetry.
-                </p>
               </details>
 
               {/* Meta */}
