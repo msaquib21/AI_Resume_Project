@@ -30,7 +30,7 @@ failure modes, not insight. [FILL: 1–2 sentences from your user interviews —
 “6 of 12 job seekers said X, so I Y”].
 
 Kept as the core bet: **evidence-cited matching + deterministic scoring**, with
-the LLM (qwen2.5:3b, local) restricted to *locating and phrasing* requirements.
+the LLM (qwen2.5:3b locally; openai/gpt-oss-120b, free tier, on the hosted demo) restricted to *locating and phrasing* requirements.
 
 ## The decision that mattered most
 

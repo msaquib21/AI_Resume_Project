@@ -66,7 +66,11 @@ Prereqs: Python 3.12+, Node 20+, optional Ollama with `qwen2.5:3b`.
 # backend (from repo root)
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
+# default: auto (Ollama if reachable → deterministic fallback)
 .venv\Scripts\uvicorn Backend.main:app --port 8000
+
+# or, with the local .env present (free Groq cloud, never committed):
+.venv\Scripts\uvicorn Backend.main:app --port 8000 --env-file .env
 
 # frontend (separate terminal)
 cd frontend
