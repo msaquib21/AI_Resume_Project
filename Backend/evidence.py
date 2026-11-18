@@ -6,10 +6,15 @@ and match skills in text despite aliases and simple morphology.
 import re
 from typing import List
 
-from Backend.skill_lexicon import SKILL_ALIASES, SKILL_LEXICON
+from Backend.skill_lexicon import SKILL_ALIASES, SKILL_CANONICAL, SKILL_LEXICON
 
 _DELIMIT = r"(?<![a-z0-9])"
 _DELIMIT_END = r"(?![a-z0-9])"
+
+
+def canonical_skill(term: str) -> str:
+    """Merge surface variants onto one canonical skill (idempotent)."""
+    return SKILL_CANONICAL.get((term or "").lower(), (term or "").lower())
 
 
 def _variants(term: str) -> List[str]:
@@ -24,14 +29,17 @@ def canonicalise_skills(raw_skills: List[str]) -> List[str]:
     duplicates removed.
     """
     out: List[str] = []
+    seen = set()
     for raw in raw_skills:
         lowered = (raw or "").lower()
         for term in SKILL_LEXICON:
-            if term in out:
+            canonical = canonical_skill(term)
+            if canonical in seen:
                 continue
             for variant in _variants(term):
                 if re.search(f"{_DELIMIT}{re.escape(variant)}{_DELIMIT_END}", lowered):
-                    out.append(term)
+                    out.append(canonical)
+                    seen.add(canonical)
                     break
     return out
 
@@ -64,5 +72,9 @@ def find_line_with_term(term: str, resume_text: str) -> str:
     pattern = re.compile(f"{_DELIMIT}{_union_pattern(term)}{_DELIMIT_END}", re.I)
     for line in resume_text.splitlines():
         if pattern.search(line):
-            return line.strip()[:220]
+            cleaned = re.sub(r"\s+", " ", line).strip().strip("|•- ")
+            if len(cleaned) <= 220:
+                return cleaned
+            cut = cleaned[:220].rsplit(" ", 1)[0].rstrip(",;:- ")
+            return cut + "…"
     return ""

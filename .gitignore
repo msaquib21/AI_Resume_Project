@@ -20,3 +20,6 @@ Thumbs.db
 # Private uploads — never commit user resumes
 *.pdf
 !evaluation/*.pdf
+
+# LLM/JD profile cache (local, no resume data)
+.cache/

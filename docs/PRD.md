@@ -42,6 +42,8 @@ Privacy: local processing; no resume storage; metrics are aggregate-only.
 | FR-10 | Streaming progress (SSE) | ❌ cut — a <10s operation; restart complexity not justified in v1 |
 | FR-11 | Accounts / history | ❌ cut — no persistence by design (privacy) |
 | FR-12 | OCR for scanned PDFs | ✅ RapidOCR offline (free, ONNX); image-only PDFs now parse |
+| FR-13 | Reproducible scoring (same input → same output) | ✅ temp 0 + seed + JD-profile cache; union with deterministic extraction |
+| FR-14 | Experience inferred when "X years" is absent | ✅ date-range union across the whole resume (education excluded) |
 
 ## 5. Decision log (the interview-relevant part)
 

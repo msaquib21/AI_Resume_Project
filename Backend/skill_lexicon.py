@@ -55,9 +55,33 @@ SKILL_LEXICON = [
     "cross-functional collaboration", "stakeholder alignment",
 ]
 
+# Canonical synonyms — merged so the SAME skill never appears twice under
+# different surface forms ("node" vs "node.js", "llm" vs "llms").
+SKILL_CANONICAL = {
+    "node.js": "node",
+    "llms": "llm",
+    "ab testing": "a/b testing",
+    "a/b test": "a/b testing",
+    "golang": "go",
+    "js": "javascript",
+    "ts": "typescript",
+    "k8s": "kubernetes",
+    "gen ai": "generative ai",
+    "genai": "generative ai",
+    "large language model": "llm",
+    "large language models": "llm",
+    "rag systems": "rag",
+    "retrieval augmented generation": "rag",
+    "rest apis": "apis",
+    "rest api": "apis",
+    "ci cd": "ci/cd",
+    "powerbi": "power bi",
+}
+
 # Common ways requirements get phrased — all map to the canonical term.
 # Without this, "user interviews" looked like zero evidence of user research.
 SKILL_ALIASES = {
+    "llm": ["llms", "large language model", "large language models"],
     "user research": ["user interviews", "usability study", "customer interviews", "user testing"],
     "roadmapping": ["roadmap"],
     "a/b testing": ["ab test", "ab testing", "split test"],
@@ -66,6 +90,7 @@ SKILL_ALIASES = {
     "machine learning": ["ml"],
     "generative ai": ["gen ai", "genai"],
     "stakeholder management": ["stakeholder alignment"],
+    "git": ["github", "gitlab", "version control"],
     "cohort analysis": ["cohort reporting", "cohort behaviour", "cohort behavior"],
     "product requirements": ["defining requirements", "writing requirements", "wrote requirements", "requirements"],
     "apis": ["rest apis", "api design"],

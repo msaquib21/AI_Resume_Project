@@ -64,6 +64,22 @@ Put it in the README, in the app footer/privacy note, and in your interview answ
 - Say out loud: “deterministic scoring, local inference, PII never leaves the machine, and here’s what breaks at scale.”
 - Link it at the top of the README and in your portfolio. A working video outlives free-tier outages.
 
+## How to talk about local-Ollama vs hosted cloud in interviews
+
+When an interviewer asks "isn't this tied to your laptop? how would it work in prod?":
+
+> "The product logic is provider-agnostic — one env var selects between local
+> Ollama (max privacy, my dev environment), a free OpenAI-compatible tier
+> (Groq/Gemini — what the public demo uses), or fully deterministic mode with
+> no model at all. Local-first was a *privacy architecture decision*, not a
+> limitation: resume data never leaves the machine by default, and the hosted
+> demo discloses exactly what transits the third party (in-memory only, never
+> stored). I priced that trade-off explicitly — $0 tiers, cold starts and rate
+> limits documented — because trust is the product."
+
+That's the senior-PM answer: constraint → explicit options → disclosed trade-offs →
+chosen profile — not "I couldn't figure out deployment".
+
 ## Free-tier realities (say these out loud in interviews)
 
 - Render free: 512MB RAM, ~750h/month, sleeps on idle, shared CPU. Fine for a demo, not a business.

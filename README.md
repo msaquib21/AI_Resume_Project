@@ -26,7 +26,7 @@ Paste a job description, upload a resume (PDF/DOCX). ResumeIQ:
 3. **Matches against the resume with cited evidence** — every matched/partial skill quotes the exact resume line; absences are reported as “no evidence found”, never invented.
 4. **Scores deterministically** — a transparent, configurable rubric (skills 40%, experience 25%, responsibilities 20%, preferred 10%, qualifications 5%). The model never invents the score.
 5. **Recommends grounded actions** — learn it / surface it / rewrite it — each tied to the resume line it references.
-6. **Maps your interview** (the differentiator) — an *Interview Evidence Map*: the exact questions an interviewer will probe, anchored to the exact resume line being probed, classified as **strong / thin / exposed**. Scores diagnose; the map prepares you for the conversation the score triggers. No template analyzer does this.
+6. **Maps your interview** (the differentiator) — an *Interview Evidence Map*: the exact questions an interviewer will probe, anchored to the exact resume line being probed, classified as **strong / thin / exposed**. Scores diagnose; the map prepares you for the conversation the score triggers. No template analyzer does this. Cards are swiped with next/prev (keyboard ←/→, touch swipe) instead of scrolled.
 7. **Explains itself** — dimension breakdown with weights, extraction mode, latency, request ID, and an explicit “this is decision support, not a hiring probability” disclaimer in the payload.
 
 ## Architecture (deliberately simple)
@@ -90,6 +90,17 @@ Useful scripts: `.venv\Scripts\python.exe -m pytest Backend/tests -q` and
 | `GET /api/metrics` | aggregate, PII-free product metrics (counts, avg latency, extraction-mode split) |
 | `POST /api/resume/parse` | raw text extraction (debug) |
 | `POST /api/analyze` | full analysis (multipart: `file` + `jd_text`) → typed JSON report |
+
+## Determinism — the same JD never scores you differently twice
+
+Same resume + same JD now produces a **bit-for-bit identical result**, every time:
+
+- temperature **0** + fixed seed on all LLM calls (was 0.1, unseeded),
+- a local cache keyed by `sha256(provider | model | normalised JD text)` — re-analysis is a hash lookup, not a new sample (`RESUMEIQ_LLM_CACHE=0` to bypass),
+- JD skill extraction is the **union** of the deterministic lexicon and LLM output (the 3B model may phrase, never silently drop),
+- skill synonyms canonicalise onto one term (`node.js`→`node`, `llms`→`llm`), and a skill seen in both required and preferred counts as required.
+
+The rubric, evidence matching and scoring are pure Python — no sampling anywhere in the pipeline. Latency drops to ~0 ms on cache hits.
 
 ## Evaluation
 

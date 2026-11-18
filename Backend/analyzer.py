@@ -125,8 +125,18 @@ def analyze(resume_text: str, jd_text: str, filename: str) -> AnalysisResponse:
         extraction_mode = "llm"
         # LLM proposes, lexicon verifies: canonicalise free-text skills onto
         # terms we can evidence. Unmappable skills are dropped, not guessed.
-        req = _dedupe(canonicalise_skills(llm_profile["required_skills"]))
-        pref = _dedupe(canonicalise_skills(llm_profile["preferred_skills"]))
+        llm_req = canonicalise_skills(llm_profile["required_skills"])
+        llm_pref = canonicalise_skills(llm_profile["preferred_skills"])
+        det_req = det_profile["required_skills"]
+        det_pref = det_profile["preferred_skills"]
+        # Union of deterministic (lexicon, reproducible) and LLM extraction —
+        # a 3B model is not allowed to silently DROP a skill the lexicon
+        # found, nor to invent one the lexicon rejects.
+        req = _dedupe([*det_req, *llm_req])
+        pref = _dedupe([*det_pref, *llm_pref])
+        # Mandatory wins: a skill seen in both lists appears only as required.
+        req_set = set(req)
+        pref = [p for p in pref if p not in req_set]
         jd_profile = JDProfile(
             job_title=llm_profile["job_title"] or det_profile["job_title"],
             seniority=llm_profile["seniority"] or det_profile["seniority"],
@@ -183,15 +193,17 @@ def analyze(resume_text: str, jd_text: str, filename: str) -> AnalysisResponse:
                         "outcome it drove — scope, action, measurable result."),
                 evidence=a.evidence,
             ))
-    for a in assessments:
-        if a.requirement == "required" and a.status == "missing":
-            recommendations.append(Recommendation(
-                type="learn",
-                title=f"No evidence of {a.skill} — decide: learn it or surface it",
-                detail=("If you genuinely have this skill, add a concrete example with context. "
-                        "If not, it is a real gap to close — not a wording problem."),
-                evidence="",
-            ))
+    missing_required = [a.skill for a in assessments if a.requirement == "required" and a.status == "missing"]
+    if missing_required:
+        recommendations.append(Recommendation(
+            type="learn",
+            title=f"Hard gaps before you apply: {', '.join(missing_required)}",
+            detail=("For each skill: if you genuinely have it, add one bullet with context and outcome — "
+                    "that converts it to evidence. If you don't, it is a real gap: either build proof "
+                    "(a small shipped project), or prepare an honest answer for the interview. "
+                    "Rank order = order shown; the interview opens on the first one."),
+            evidence="",
+        ))
 
     # Presentation improvements grounded in weak bullets (no invented content).
     weak_bullets = [

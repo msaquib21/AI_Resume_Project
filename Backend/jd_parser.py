@@ -12,7 +12,7 @@ import re
 from typing import List, Tuple
 
 from Backend.config import SENIORITY_EXPECTATIONS
-from Backend.evidence import term_in_text
+from Backend.evidence import canonical_skill, term_in_text
 from Backend.skill_lexicon import DEGREE_KEYWORDS, SKILL_LEXICON
 
 _BULLET_RE = re.compile(r"^\s*[-*•▪◦]\s+|^\s*\d+[.)]\s+")
@@ -111,10 +111,11 @@ def parse_jd(jd_text: str):
 
         for term in SKILL_LEXICON:
             if term_in_text(term, lowered):
+                canonical = canonical_skill(term)
                 if section == "preferred":
-                    preferred.add(term)
+                    preferred.add(canonical)
                 else:  # required + untagged default to mandatory
-                    required.add(term)
+                    required.add(canonical)
 
     # A skill seen in both sections is treated as required (mandatory wins).
     preferred -= required

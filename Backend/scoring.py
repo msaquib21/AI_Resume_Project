@@ -36,13 +36,100 @@ def extract_years_experience(resume_text: str) -> Optional[float]:
     return float(max(matches)) if matches else None
 
 
+# --- Experience inferred from date ranges (no explicit "X years" needed) ---
+_MONTHS = {
+    "jan": 1, "january": 1, "feb": 2, "february": 2, "mar": 3, "march": 3,
+    "apr": 4, "april": 4, "may": 5, "jun": 6, "june": 6, "jul": 7, "july": 7,
+    "aug": 8, "august": 8, "sep": 9, "sept": 9, "september": 9, "oct": 10,
+    "october": 10, "nov": 11, "november": 11, "dec": 12, "december": 12,
+}
+_DATE_TOKEN = (
+    r"(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|"
+    r"jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)"
+    r"\.?\s*\d{4}|\d{1,2}/\d{4}|\d{4})"
+)
+_END_TOKEN = _DATE_TOKEN + r"|present|current|now|today"
+_RANGE_RE = re.compile(rf"({_DATE_TOKEN})\s*(?:–|—|−|-|\bto\b|\buntil\b)\s*({_END_TOKEN})", re.I)
+
+
+
+def _parse_date(token: str):
+    from datetime import date
+    s = token.strip().lower().rstrip(".")
+    if s in ("present", "current", "now", "today"):
+        return date.today()
+    m = re.fullmatch(r"(\d{1,2})/(\d{4})", s)
+    if m:
+        return date(int(m.group(2)), int(m.group(1)), 1)
+    m = re.fullmatch(r"(\d{4})", s)
+    if m:
+        return date(int(m.group(1)), 7, 1)
+    m = re.fullmatch(r"([a-z]+)\.?\s*(\d{4})", s)
+    if m:
+        month = _MONTHS.get(m.group(1))
+        if month:
+            return date(int(m.group(2)), month, 1)
+    raise ValueError(f"unparsable date token: {token!r}")
+
+
+def infer_experience_years_from_dates(resume_text: str) -> Optional[float]:
+    """Career span from date ranges anywhere in the resume.
+
+    Layout-agnostic: infographic/two-column PDFs often emit section headers
+    AFTER their content, so we don't rely on section slicing. A range is
+    treated as education when education keywords appear within the same
+    neighbourhood; education spans are excluded. Overlapping ranges are
+    merged (union) so concurrent jobs are not double-counted.
+    """
+    edu_keywords = (
+        "b.tech", "b.e.", "btech", "be in", "m.tech", "m.e.", "mtech", "mba",
+        "bsc", "msc", "bachelor", "master", "degree", "diploma", "cgpa",
+        "percentage", "college", "university", "institute of technology",
+        "school", "vidyalaya", "class x", "class xii", "ssc", "hsc",
+    )
+
+    intervals = []
+    for match in _RANGE_RE.finditer(resume_text):
+        try:
+            start_d = _parse_date(match.group(1))
+            end_d = _parse_date(match.group(2))
+        except ValueError:
+            continue
+        if end_d < start_d:
+            continue
+        if (end_d - start_d).days > 15 * 366:  # sanity cap per range
+            continue
+        # Context window around the range decides employment vs education.
+        window = resume_text[max(0, match.start() - 160): match.end() + 160].lower()
+        if any(k in window for k in edu_keywords):
+            continue
+        intervals.append((start_d, end_d))
+    if not intervals:
+        return None
+
+    intervals.sort()
+    merged = [list(intervals[0])]
+    for start_d, end_d in intervals[1:]:
+        if start_d <= merged[-1][1]:
+            merged[-1][1] = max(merged[-1][1], end_d)
+        else:
+            merged.append([start_d, end_d])
+    total_days = sum((e - s).days for s, e in merged)
+    years = total_days / 365.25
+    return round(years, 1) if years >= 0.25 else None
+
+
 def experience_score(resume_text: str, expected_years: Optional[float] = None) -> tuple[Optional[float], str]:
     years = extract_years_experience(resume_text)
+    inferred = years is None
+    if inferred:
+        years = infer_experience_years_from_dates(resume_text)
     if years is None:
-        return None, "No explicit years of experience found; cannot assess."
+        return None, "No explicit years or parseable date ranges found; cannot assess."
     expected = float(expected_years) if expected_years else float(DEFAULT_EXPECTED_YEARS)
     score = _clamp(100.0 * min(years, expected) / expected)
-    return score, f"Resume states ~{years:g} year(s) of experience vs ~{expected:g} expected by the JD."
+    basis = "estimated from date ranges in the experience section" if inferred else "as stated on the resume"
+    return score, f"Resume indicates ~{years:g} year(s) of experience ({basis}) vs ~{expected:g} expected by the JD."
 
 
 # ---------------------------------------------------------------------------
