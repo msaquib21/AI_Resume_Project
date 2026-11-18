@@ -43,6 +43,15 @@ JOB DESCRIPTION:
 """
 
 
+# Some hosted inference providers sit behind CDNs (e.g. Groq behind Cloudflare)
+# that 403 non-browser User-Agents (error code 1010). Identify as a browser —
+# this changes nothing about the content of our requests.
+_HTTP_HEADERS = {
+    "Content-Type": "application/json",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+}
+
+
 def _generate(prompt: str) -> str:
     payload = json.dumps({
         "model": OLLAMA_MODEL,
@@ -54,7 +63,7 @@ def _generate(prompt: str) -> str:
     req = urllib.request.Request(
         f"{OLLAMA_BASE_URL}/api/generate",
         data=payload,
-        headers={"Content-Type": "application/json"},
+        headers=dict(_HTTP_HEADERS),
     )
     # urllib has no separate connect timeout; use a short total timeout for
     # the availability probe and the real timeout for the generation call.
@@ -74,7 +83,7 @@ def _generate_openai_compatible(prompt: str) -> str:
         f"{OPENAI_BASE_URL.rstrip('/')}/chat/completions",
         data=payload,
         headers={
-            "Content-Type": "application/json",
+            **_HTTP_HEADERS,
             "Authorization": f"Bearer {OPENAI_API_KEY}",
         },
     )

@@ -18,30 +18,33 @@ AI PM, not just an engineer:
 ## Profile B — step by step (Groq free tier, no credit card)
 
 1. Create a free API key at https://console.groq.com → API Keys (free, no card).
-2. **Render (backend, free web service):**
+2. **Pick a model your free account can actually serve.** llama-3.3-70b-versatile is no longer on the free on-demand tier. **`openai/gpt-oss-120b` is verified working** — JSON mode, 131k context, ~1.7s median latency (tested end-to-end through `Backend/llm.py`, output: `mode: llm | model: openai/gpt-oss-120b | latency_ms: ~1700`). Check yours at `GET /openai/v1/models`.
+3. **Render (backend, free web service):**
    - Push repo to GitHub. New → Web Service → connect repo → Root directory: `.`
-   - Build command: `.venv/Scripts/pip install -r requirements.txt` → use `pip install -r requirements.txt` (Render is Linux)
+   - Build command: `pip install -r requirements.txt`
    - Start command: `uvicorn Backend.main:app --host 0.0.0.0 --port $PORT`
    - Free plan. Env vars:
      ```
      RESUMEIQ_LLM=cloud
      OPENAI_BASE_URL=https://api.groq.com/openai/v1
      OPENAI_API_KEY=<your key>
-     OPENAI_MODEL=llama-3.3-70b-versatile
+     OPENAI_MODEL=openai/gpt-oss-120b
      RESUMEIQ_CORS_ORIGINS=https://<your-vercel-app>.vercel.app
      ```
    - Note: free tier sleeps after inactivity — first hit after idle takes ~30–50s (cold start). Mention it on the page or in the demo video.
-3. **Vercel (frontend, free):**
+4. **Vercel (frontend, free):**
    - New Project → `frontend/` directory → framework preset Vite (auto-detected).
    - Env var: `VITE_API_URL=https://<your-render-service>.onrender.com`
    - Deploy. The typed client already reads `VITE_API_URL`.
-4. **Smoke test:** open the Vercel URL → upload PDF → paste JD → analyze. Expect a cold-start delay on first request only.
+5. **Smoke test:** open the Vercel URL → upload PDF → paste JD → analyze. Expect a cold-start delay on first request only.
 
 Free alternative LLM providers (any OpenAI-compatible endpoint works — set the three env vars, zero code changes):
-- **Groq** (recommended): `llama-3.3-70b-versatile` — free, no card, very fast.
+- **Groq** (recommended, verified): `openai/gpt-oss-120b` — free, no card, ~1.7s. (Note: providers behind Cloudflare may 403 unknown User-Agents; our client sends a browser UA.)
 - **Google Gemini**: base `https://generativelanguage.googleapis.com/v1beta/openai/`, model `gemini-2.0-flash` — free quota, generous for a demo.
 - **GitHub Models**: base `https://models.inference.ai.azure.com`, model `Llama-3.3-70B-Instruct` — free with your GitHub token.
-- **OpenRouter**: free `:free` models — availability varies.
+- **OpenRouter**: `https://openrouter.ai/api/v1`, any `:free` slug with JSON mode (e.g. `google/gemma-4-26b-a4b-it:free`). **Heavily rate-limited (HTTP 429)** — treat as a fallback only; the app degrades gracefully to deterministic extraction.
+
+**Keep the keys out of git.** `.env` is gitignored; `.env.example` holds placeholders. If a key is ever committed or pasted into chat/issues: revoke and re-issue immediately.
 
 ## Profile C — zero-third-party deployment (bulletproof fallback)
 

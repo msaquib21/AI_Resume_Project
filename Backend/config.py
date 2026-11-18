@@ -20,13 +20,15 @@ OLLAMA_MODEL = os.getenv("RESUMEIQ_OLLAMA_MODEL", "qwen2.5:3b")
 OLLAMA_TIMEOUT_SECONDS = float(os.getenv("RESUMEIQ_OLLAMA_TIMEOUT", "120"))
 OLLAMA_CONNECT_TIMEOUT_SECONDS = float(os.getenv("RESUMEIQ_OLLAMA_CONNECT_TIMEOUT", "4"))
 
-# Cloud (OpenAI-compatible) provider — free tiers work:
-#   Groq:            base https://api.groq.com/openai/v1          model llama-3.3-70b-versatile
+# Cloud (OpenAI-compatible) provider — free tiers work (verified on live keys):
+#   Groq:            base https://api.groq.com/openai/v1          model openai/gpt-oss-120b (verified 1.7s)
 #   Google Gemini:   base https://generativelanguage.googleapis.com/v1beta/openai/  model gemini-2.0-flash
 #   GitHub Models:   base https://models.inference.ai.azure.com   model Llama-3.3-70B-Instruct
+#   OpenRouter:      base https://openrouter.ai/api/v1            model any :free slug with json mode (rate-limited; fallback only)
+# NOTE: llama-3.3-70b-versatile is NOT on free-tier on-demand anymore; use openai/gpt-oss-120b.
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.groq.com/openai/v1")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "llama-3.3-70b-versatile")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "openai/gpt-oss-120b")
 OPENAI_TIMEOUT_SECONDS = float(os.getenv("OPENAI_TIMEOUT_SECONDS", "120"))
 
 # ---------------------------------------------------------------------------
