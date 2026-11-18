@@ -1,0 +1,24 @@
+Associate Product Manager, Growth
+
+About the role
+You will own analytics and experimentation for our consumer growth pod.
+
+Responsibilities:
+- Define product requirements and user stories with engineering
+- Run A/B testing and experimentation to improve activation
+- Partner with data science on cohort analysis and retention metrics
+- Present findings to senior stakeholders
+
+Required:
+- SQL and Python
+- Product discovery and user research
+- A/B testing
+- Roadmapping and requirement writing
+
+Preferred:
+- Experience with Adobe Analytics or similar product analytics tools
+- Generative AI familiarity
+
+Requirements:
+- 2+ years of experience (internships count)
+- Bachelor's degree in any field

@@ -1,0 +1,22 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+
+# Environment & secrets
+.env
+.env.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Private uploads — never commit user resumes
+*.pdf
+!evaluation/*.pdf

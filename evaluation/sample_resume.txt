@@ -1,0 +1,20 @@
+Ananya Sharma
+ananya.sharma@example.com
+
+SUMMARY
+Product-minded program manager with 2 years of experience launching
+analytics products at a large Indian conglomerate.
+
+EXPERIENCE
+- Led the roadmap for a weekly active users dashboard used by 40+ stakeholders
+- Wrote SQL and Python pipelines powering cohort analysis across 18 months of CRM data
+- Defined requirements and user stories for a self-serve reporting feature
+- Partnered with engineering to ship a cohort analysis experiment improving
+  retention by 12%
+- Managed stakeholder alignment across 5 teams for a CRM migration
+
+SKILLS
+SQL, Python, Product discovery, User research, Agile, Roadmapping, Excel
+
+EDUCATION
+B.Tech, Computer Science, 2022
