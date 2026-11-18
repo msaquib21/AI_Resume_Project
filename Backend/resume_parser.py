@@ -11,7 +11,42 @@ from docx.table import Table
 from docx.text.paragraph import Paragraph
 
 
+from Backend.config import OCR_DPI, OCR_MODE
+
 logger = logging.getLogger(__name__)
+
+
+def _ocr_page_text(page) -> str:
+    """OCR a single page rendered to a raster image.
+
+    Uses RapidOCR (ONNX models, runs fully offline on CPU). Imported lazily
+    so the OCR dependency stays optional — the text-PDF path never touches it.
+    """
+    try:
+        from rapidocr_onnxruntime import RapidOCR
+    except ImportError as exc:
+        if OCR_MODE == "on":
+            raise ValueError(
+                "This PDF appears to be a scanned image and OCR is required. "
+                "Install it with: python -m pip install rapidocr-onnxruntime"
+            ) from exc
+        logger.warning("rapidocr-onnxruntime not installed; cannot OCR this PDF.")
+        return ""
+
+    pix = page.get_pixmap(dpi=OCR_DPI)
+    image_bytes = pix.tobytes("png")
+
+    try:
+        # RapidOCR auto-caches the ONNX models on first run.
+        ocr = RapidOCR()
+        result, _ = ocr(image_bytes)
+    except Exception as ocr_error:
+        logger.warning("OCR failed on page %s: %s", page.number + 1, ocr_error)
+        return ""
+
+    if not result:
+        return ""
+    return "\n".join(line[1] for line in result if len(line) >= 2 and line[1])
 
 
 # ==========================================================
@@ -211,13 +246,25 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
 
     extracted_text = "\n\n".join(extracted_pages).strip()
 
-    # Detect empty or image-only documents.
+    # Detect empty or image-only documents — try OCR before giving up.
+    if not extracted_text and OCR_MODE != "off":
+        logger.info("No text layer found; attempting OCR fallback (dpi=%s).", OCR_DPI)
+        ocr_pages: List[str] = []
+        with fitz.open(stream=file_bytes, filetype="pdf") as pdf:
+            for page in pdf:
+                page_ocr_text = _ocr_page_text(page)
+                if page_ocr_text:
+                    ocr_pages.append(page_ocr_text)
+        extracted_text = "\n\n".join(ocr_pages).strip()
+        if extracted_text:
+            logger.info("OCR extracted %s characters from a scanned PDF.", len(extracted_text))
+
     if not extracted_text:
 
         raise ValueError(
             "Could not extract readable text from this resume. "
-            "It may be a scanned or image-only PDF. "
-            "Please upload a text-based PDF or DOCX."
+            "It appears to be a scanned image — install rapidocr-onnxruntime "
+            "for OCR support, or upload a text-based PDF or DOCX."
         )
 
     logger.info(

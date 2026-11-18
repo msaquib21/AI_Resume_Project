@@ -5,5 +5,8 @@ pymupdf==2.0
 python-docx==1.2.0
 python-multipart==0.0.33
 
+# OCR for scanned PDFs (free, offline, ONNX — no system binary needed)
+rapidocr-onnxruntime==1.2.3
+
 # development
 pytest==9.2.0

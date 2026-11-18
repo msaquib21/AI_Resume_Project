@@ -126,3 +126,19 @@ def test_interview_map_is_generated_and_grounded(monkeypatch):
     assert all(p.grounded_in == "" for p in exposed)  # honest: no fake evidence
     strong = [p for p in result.interview_map if p.readiness == "strong"]
     assert all(p.grounded_in for p in strong)  # strong probes anchored in resume
+
+def test_ocr_extracts_text_from_scanned_pdf():
+    rapidocr = pytest.importorskip("rapidocr_onnxruntime")
+    # Build a synthetic image-only PDF containing known text.
+    text_doc = fitz.open()
+    page = text_doc.new_page()
+    page.insert_text((72, 140), "RESUMEIQ OCR TEST PYTHON SQL", fontsize=32)
+    pix = page.get_pixmap(dpi=200)
+    img_doc = fitz.open()
+    img_page = img_doc.new_page(width=page.rect.width, height=page.rect.height)
+    img_page.insert_image(img_page.rect, pixmap=pix)
+    image_bytes = img_doc.tobytes()
+
+    text = extract_resume_text("scanned.pdf", image_bytes)
+    lowered = text.lower()
+    assert "ocr" in lowered or "resumeiq" in lowered

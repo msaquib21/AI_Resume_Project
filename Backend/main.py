@@ -84,6 +84,9 @@ async def _read_resume(file: UploadFile) -> str:
 
     try:
         text = extract_resume_text(filename, file_bytes)
+    except ValueError as exc:
+        # Parser messages are user-facing and contain no PII — forward them.
+        raise HTTPException(status_code=422, detail=str(exc))
     except Exception:
         raise HTTPException(status_code=422, detail="Could not read this file. Please upload a valid, text-based PDF or DOCX.")
 

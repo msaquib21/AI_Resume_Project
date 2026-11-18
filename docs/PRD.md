@@ -30,7 +30,7 @@ Privacy: local processing; no resume storage; metrics are aggregate-only.
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| FR-01 | PDF/DOCX upload, 5MB cap, text extraction incl. multi-column + tables | ✅ built + tested |
+| FR-01 | PDF/DOCX upload, 5MB cap, text extraction incl. multi-column + tables + OCR fallback for scanned PDFs | ✅ built + tested |
 | FR-02 | JD input validation (min 80 / max 20k chars) | ✅ |
 | FR-03 | Structured JD profile (title, seniority, required/preferred skills, responsibilities, qualifications) — LLM or deterministic | ✅ both paths |
 | FR-04 | LLM proposes → lexicon verifies (unmappable skills dropped) | ✅ built |
@@ -41,7 +41,7 @@ Privacy: local processing; no resume storage; metrics are aggregate-only.
 | FR-09 | Aggregate metrics endpoint, PII-free logging | ✅ |
 | FR-10 | Streaming progress (SSE) | ❌ cut — a <10s operation; restart complexity not justified in v1 |
 | FR-11 | Accounts / history | ❌ cut — no persistence by design (privacy) |
-| FR-12 | OCR for scanned PDFs | ❌ cut — returns actionable error instead |
+| FR-12 | OCR for scanned PDFs | ✅ RapidOCR offline (free, ONNX); image-only PDFs now parse |
 
 ## 5. Decision log (the interview-relevant part)
 

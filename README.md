@@ -100,9 +100,13 @@ pairs across match strengths). Deterministic, pinned offline:
 |---|---|
 | Skill-status accuracy vs hand labels | **100%** (25/25) |
 | Groundedness (claim → verbatim evidence or explicit absence) | **100%** |
-| Unit/integration tests | 6 passed |
+| Unit/integration tests | 8 passed (incl. OCR round-trip) |
 
 Reproduce: `.venv\Scripts\python.exe evaluation\evaluate.py` → `evaluation/report.md`.
+
+**Scanned PDFs:** image-only PDFs (no text layer) are detected automatically and
+OCR’d offline with RapidOCR (ONNX models). OCR text is noisier than a real text
+layer — prefer a text-based PDF (Export → PDF, not Print → PDF) when you can.
 
 **Known limitations (honest list):** lexical matching with aliases + light
 morphology misses paraphrases; the 3B model’s JD extraction varies run-to-run

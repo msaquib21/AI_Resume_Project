@@ -37,6 +37,15 @@ MAX_JD_CHARS = int(os.getenv("RESUMEIQ_MAX_JD_CHARS", "20000"))
 MIN_JD_CHARS = int(os.getenv("RESUMEIQ_MIN_JD_CHARS", "80"))
 
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# OCR for scanned/image-only PDFs (optional but free + offline)
+#   auto (default) use RapidOCR if installed, else fail with a clear message
+#   on   require OCR; fail if RapidOCR is unavailable
+#   off  never OCR; image-only PDFs are rejected
+# ---------------------------------------------------------------------------
+OCR_MODE = os.getenv("RESUMEIQ_OCR", "auto").lower()
+OCR_DPI = int(os.getenv("RESUMEIQ_OCR_DPI", "200"))
+
 # Scoring rubric — INITIAL PRODUCT HYPOTHESIS, not validated truth.
 # Calibrate against the labeled set in evaluation/ before trusting the numbers.
 # Weights are renormalized automatically when a dimension is not applicable
