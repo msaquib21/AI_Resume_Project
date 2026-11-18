@@ -23,3 +23,5 @@ Thumbs.db
 
 # LLM/JD profile cache (local, no resume data)
 .cache/
+
+!docs/ResumeIQ_AI_PM_Case_Study.pdf

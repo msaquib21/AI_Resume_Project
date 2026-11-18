@@ -1,4 +1,23 @@
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+export const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+
+export type BackendMode = "auto" | "ollama" | "cloud" | "offline" | "unreachable";
+
+export interface HealthInfo {
+  status: string;
+  service: string;
+  llm_mode: BackendMode;
+}
+
+/** Mode the backend is actually configured with — drives honest UI claims. */
+export async function fetchHealth(): Promise<HealthInfo | null> {
+  try {
+    const response = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout?.(4000) });
+    if (!response.ok) return null;
+    return (await response.json()) as HealthInfo;
+  } catch {
+    return null;
+  }
+}
 
 export type SkillStatus = "matched" | "partial" | "missing";
 export type Requirement = "required" | "preferred";

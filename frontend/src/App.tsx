@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
-import { analyzeResume, type AnalysisResponse, type SkillAssessment } from "./services/api";
+import { analyzeResume, fetchHealth, type AnalysisResponse, type BackendMode, type SkillAssessment } from "./services/api";
 import CardDeck, { type DeckTab } from "./components/CardDeck";
 import LoadingStages from "./components/LoadingStages";
 
@@ -65,26 +65,33 @@ function DimensionBars({ analysis }: { analysis: AnalysisResponse }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Skill evidence row (expandable)                                      */
+/* Skill evidence card (landscape strip)                              */
 /* ------------------------------------------------------------------ */
-function SkillRow({ skill }: { skill: SkillAssessment }) {
+function SkillCard({ skill }: { skill: SkillAssessment }) {
   const [open, setOpen] = useState(false);
+  const expandable = skill.status !== "missing";
   return (
-    <div className={`skill-row skill-${skill.status}`}>
-      <button type="button" className="skill-row-button" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-        <span className="skill-dot" aria-hidden="true" />
+    <div className={`skill-card skill-${skill.status}`}>
+      <button
+        type="button"
+        className="skill-card-button"
+        onClick={() => expandable && setOpen((v) => !v)}
+        aria-expanded={expandable ? open : undefined}
+      >
+        <span className="skill-card-top">
+          <span className="skill-dot" aria-hidden="true" />
+          <span className="skill-status">{STATUS_LABEL[skill.status]}</span>
+          {expandable && <span className="skill-caret" aria-hidden="true">{open ? "–" : "+"}</span>}
+        </span>
         <span className="skill-name">{capitalize(skill.skill)}</span>
-        <span className="skill-status">{STATUS_LABEL[skill.status]}</span>
-        <span className="skill-caret" aria-hidden="true">{open ? "–" : "+"}</span>
       </button>
-      {open && (
+      {open && skill.evidence && (
         <div className="skill-evidence">
-          {skill.evidence
-            ? <blockquote>“{skill.evidence}”</blockquote>
-            : <p className="no-evidence">No direct evidence found in the resume text.</p>}
+          <blockquote>“{skill.evidence}”</blockquote>
           <small>{skill.note}</small>
         </div>
       )}
+      {!expandable && <p className="skill-noevidence">No evidence found in the resume text.</p>}
     </div>
   );
 }
@@ -102,8 +109,13 @@ function App() {
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
   const [recTab, setRecTab] = useState("all");
   const [mapTab, setMapTab] = useState("all");
+  const [backendMode, setBackendMode] = useState<BackendMode | "loading">("loading");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchHealth().then((h) => setBackendMode(h?.llm_mode ?? "unreachable"));
+  }, []);
 
   const acceptFile = useCallback((file: File | undefined) => {
     setFileError("");
@@ -243,9 +255,31 @@ function App() {
             <span className="logo-sub">Evidence-grounded analysis</span>
           </a>
           <div className="nav-right">
-            <span className="nav-pill" title="Resume text is processed in memory and discarded — never stored, never logged.">
-              <span className="nav-pill-dot" />Local-first · nothing stored
-            </span>
+            {backendMode === "ollama" && (
+              <span className="nav-pill" title="Extraction runs on your machine via Ollama. Resume text never leaves this device.">
+                <span className="nav-pill-dot" />Local-first · nothing stored
+              </span>
+            )}
+            {backendMode === "auto" && (
+              <span className="nav-pill" title="Backend auto-selects: local Ollama if available, free hosted API if configured, else deterministic parsing. Nothing is stored either way.">
+                <span className="nav-pill-dot" />Auto inference · nothing stored
+              </span>
+            )}
+            {backendMode === "cloud" && (
+              <span className="nav-pill nav-pill-cloud" title="Extraction runs on a free-tier hosted model (Groq). Resume text transits Groq in memory and is never stored on our servers — for fully local analysis, run ResumeIQ yourself (see README).">
+                <span className="nav-pill-dot dot-cloud" />Free-tier demo · not stored
+              </span>
+            )}
+            {backendMode === "offline" && (
+              <span className="nav-pill" title="No model calls at all — deterministic parsing only. Nothing leaves the machine.">
+                <span className="nav-pill-dot" />Deterministic · nothing stored
+              </span>
+            )}
+            {backendMode === "unreachable" && (
+              <span className="nav-pill nav-pill-off" title="The analysis API isn't reachable — start it with: .venv\Scripts\uvicorn Backend.main:app --port 8000">
+                <span className="nav-pill-dot dot-off" />Backend offline
+              </span>
+            )}
             <a className="nav-link" href="#method">Method</a>
           </div>
         </div>
@@ -402,14 +436,18 @@ function App() {
                     <span><i className="dot dot-warn" />Partial — listed only</span>
                     <span><i className="dot dot-bad" />No evidence found</span>
                   </div>
-                  <div className="skill-columns">
-                    <div>
-                      <p className="skill-group">REQUIRED <span>{required.length}</span></p>
-                      <div className="skill-rows">{required.map((s) => <SkillRow key={`r-${s.skill}`} skill={s} />)}</div>
+                  <div className="skill-lanes">
+                    <div className="skill-lane">
+                      <p className="skill-group">REQUIRED <span>{required.length}</span><em className="lane-hint">scroll →</em></p>
+                      <div className="skill-strip" tabIndex={0} aria-label="Required skills — horizontal list, scroll right">
+                        {required.map((s) => <SkillCard key={`r-${s.skill}`} skill={s} />)}
+                      </div>
                     </div>
-                    <div>
-                      <p className="skill-group">PREFERRED <span>{preferred.length}</span></p>
-                      <div className="skill-rows">{preferred.map((s) => <SkillRow key={`p-${s.skill}`} skill={s} />)}</div>
+                    <div className="skill-lane">
+                      <p className="skill-group">PREFERRED <span>{preferred.length}</span><em className="lane-hint">scroll →</em></p>
+                      <div className="skill-strip" tabIndex={0} aria-label="Preferred skills — horizontal list, scroll right">
+                        {preferred.map((s) => <SkillCard key={`p-${s.skill}`} skill={s} />)}
+                      </div>
                     </div>
                   </div>
                 </section>
@@ -478,12 +516,10 @@ function App() {
                     <span className="tstat-label">Cost / analysis</span>
                     <span className="tstat-foot">{analysis.meta.latency_ms.toLocaleString()} ms · local or free-tier inference · identical inputs are served from cache (~0 ms).</span>
                   </div>
-                  <div className="tstat tstat-north">
-                    <span className="tstat-value">0/{stats ? stats.partial + stats.missing : 0}</span>
-                    <span className="tstat-label">North Star (not yet measured)</span>
-                    <span className="tstat-foot">Evidence-backed bullets created per exposed/thin claim. Hypothesis, pending user testing — we don’t ship unmeasured metrics as wins.</span>
-                  </div>
                 </div>
+                <p className="telemetry-north">
+                  <b>Not yet measured (on purpose):</b> our North Star — <i>% of exposed/thin claims converted into evidence-backed bullets by the candidate</i> — needs instrumentation we don’t have yet. It stays a hypothesis until user testing gives us the denominator; inventing a number would be decoration, not telemetry.
+                </p>
               </details>
 
               {/* Meta */}
