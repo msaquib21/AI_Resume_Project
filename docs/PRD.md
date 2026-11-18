@@ -74,7 +74,30 @@ To add with users: recommendation acceptance rate, re-upload-after-edit rate, sc
 **v2:** calibration study (n≥30, human MAE), richer lexicon from consented JDs, optional LLM rewriting assist with strict no-fabrication constraints, RAG over JD corpus, deployed demo with disclosed inference.
 **v3:** longitudinal mode — track a resume across applications; integrate with application tracker (Reliance PM background fits).
 
-## 9. Open questions
+## 9. Interview Evidence Map (v1 differentiator)
+
+Resume analyzers stop at the score. For every JD requirement and responsibility,
+ResumeIQ emits the probe an interviewer will most plausibly ask, anchored to the
+verbatim resume line being probed (or flagged as having no anchor), classified:
+
+- **strong** — evidence exists; coach the candidate to defend it with depth (and metrics, if claimed).
+- **thin** — listed/partial evidence; the first follow-up collapses it; prepare a STAR story with numbers.
+- **exposed** — JD-critical, zero evidence; the interview’s opening target.
+
+Deterministic templates (no model needed); generated from the same evidence-cited
+assessments the score uses. Shipped in API (`interview_map`), UI (per-probe cards),
+and tests. This is the piece that makes the project a *workflow* tool, not a
+*document* tool — and a concrete answer to "what makes this different?".
+
+## 10. Deployment reality (free)
+
+Profile A local Ollama (privacy) · Profile B hosted + free cloud LLM (Groq /
+Gemini / GitHub Models, OpenAI-compatible — one env var swap, `DEPLOYMENT.md`)
+· Profile C hosted deterministic mode (no third party at all). Privacy disclosed
+in-app and in docs; cold-start caveat documented. Recorded local demo (Loom)
+as the always-on portfolio artifact.
+
+## 11. Open questions
 
 - Weight calibration: is responsibilities-alignment worth 20% vs experience? Needs human labels.
 - Should “partial-only-in-skills-list” be capped harder? (Currently 0.5 credit.)

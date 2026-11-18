@@ -17,6 +17,10 @@ from Backend.config import (
     OLLAMA_CONNECT_TIMEOUT_SECONDS,
     OLLAMA_MODEL,
     OLLAMA_TIMEOUT_SECONDS,
+    OPENAI_API_KEY,
+    OPENAI_BASE_URL,
+    OPENAI_MODEL,
+    OPENAI_TIMEOUT_SECONDS,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,6 +60,30 @@ def _generate(prompt: str) -> str:
     return body.get("response", "")
 
 
+def _generate_openai_compatible(prompt: str) -> str:
+    payload = json.dumps({
+        "model": OPENAI_MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.1,
+        "response_format": {"type": "json_object"},
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        f"{OPENAI_BASE_URL.rstrip('/')}/chat/completions",
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=OPENAI_TIMEOUT_SECONDS) as resp:
+        body = json.loads(resp.read().decode("utf-8"))
+    return body["choices"][0]["message"]["content"]
+
+
+def cloud_available() -> bool:
+    return bool(OPENAI_API_KEY)
+
+
 def ollama_available() -> bool:
     try:
         with urllib.request.urlopen(f"{OLLAMA_BASE_URL}/api/tags", timeout=OLLAMA_CONNECT_TIMEOUT_SECONDS):
@@ -81,10 +109,14 @@ def _parse_json_object(text: str) -> Optional[dict]:
             return None
 
 
-def extract_jd_profile_llm(jd_text: str) -> Optional[dict]:
-    """Return a JD-profile dict, or None if the LLM path fails for any reason."""
+def extract_jd_profile_llm(jd_text: str, provider: str = "ollama") -> Optional[dict]:
+    """Return a JD-profile dict, or None if the LLM path fails for any reason.
+
+    provider: "ollama" (local, default) or "cloud" (OpenAI-compatible endpoint).
+    """
     try:
-        raw = _generate(JD_EXTRACTION_PROMPT % jd_text[:12000])
+        generate = _generate_openai_compatible if provider == "cloud" else _generate
+        raw = generate(JD_EXTRACTION_PROMPT % jd_text[:12000])
         parsed = _parse_json_object(raw)
         if not parsed:
             logger.warning("LLM JD extraction returned unparseable output; using deterministic parser.")

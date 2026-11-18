@@ -594,3 +594,165 @@ footer span {
     grid-template-columns: 1fr;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Interview evidence map                                              */
+/* ------------------------------------------------------------------ */
+
+.map-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+}
+
+.map-stat {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  border-radius: 20px;
+  padding: 5px 12px;
+  border: 1px solid transparent;
+}
+
+.map-strong { color: #6ee7b7; background: #0f241c; border-color: #1f4632; }
+.map-thin   { color: #fcd34d; background: #251d0e; border-color: #463a1f; }
+.map-exposed{ color: #fca5a5; background: #260f10; border-color: #46231f; }
+
+.map-hint {
+  color: #7d7e8f;
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.probe-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  counter-reset: probe;
+}
+
+.probe {
+  background: #101119;
+  border: 1px solid #262735;
+  border-radius: 10px;
+  padding: 13px 15px;
+  position: relative;
+}
+
+.probe::before {
+  counter-increment: probe;
+  content: counter(probe);
+  position: absolute;
+  top: 13px;
+  right: 15px;
+  font-family: "Manrope", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: #4a4b5c;
+}
+
+.probe-exposed { border-left: 3px solid #f87171; }
+.probe-thin    { border-left: 3px solid #fbbf24; }
+.probe-strong  { border-left: 3px solid #34d399; }
+
+.probe-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.probe-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.probe-exposed .probe-badge { color: #fca5a5; background: #2a1414; }
+.probe-thin .probe-badge    { color: #fcd34d; background: #261f0e; }
+.probe-strong .probe-badge  { color: #6ee7b7; background: #0f241c; }
+
+.probe-target {
+  color: #8f90a2;
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.probe-question {
+  color: #e9eaf0;
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 0;
+}
+
+.probe blockquote {
+  margin: 9px 0 0;
+  padding-left: 10px;
+  border-left: 2px solid #3d3752;
+  color: #b9b3d6;
+  font-size: 11px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.probe-why {
+  color: #7d7e8f;
+  font-size: 10.5px;
+  line-height: 1.6;
+  margin: 9px 0 0;
+}
+
+@media (max-width: 720px) {
+  .map-hint { margin-left: 0; width: 100%; }
+}
+
+/* ------------------------------------------------------------------ */
+/* Polish: results entrance + skill legend                             */
+/* ------------------------------------------------------------------ */
+
+@keyframes results-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.results {
+  animation: results-in 0.55s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .results { animation: none; }
+  .dimension-fill { transition: none; }
+}
+
+.skill-legend {
+  display: flex;
+  gap: 16px;
+  margin: -4px 0 12px;
+  font-size: 11px;
+  color: #8a8b9c;
+}
+
+.skill-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.skill-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-matched { background: #34d399; }
+.dot-partial { background: #fbbf24; }
+.dot-missing { background: #f87171; }

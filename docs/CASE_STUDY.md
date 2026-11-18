@@ -11,8 +11,7 @@ by shipping a small, honest, measured AI product.
 
 ## The one-line story
 
-**I built a resume↔JD analyzer that doesn't let the model make things up — then
-proved, measured and disclosed exactly where it works and where it doesn't.**
+**I built a resume↔JD analyzer that doesn't let the model make things up — and that tells you the exact questions your interview will probe, anchored to your own resume line.**
 
 ## Why this problem
 
@@ -61,8 +60,9 @@ or generalization — n=4 is a dev set, stated as such everywhere it appears.
 
 ## Shipped vs roadmap
 
-Shipped: end-to-end flow, local LLM + offline fallback, evidence-cited report,
-deterministic rubric, PII-free metrics endpoint, tests, this documentation.
+Shipped: end-to-end flow, local LLM + cloud free-tier + deterministic offline modes,
+evidence-cited report, deterministic rubric, **Interview Evidence Map**, PII-free
+metrics endpoint, layout-verified parser, tests, this documentation.
 Roadmap: calibration study, richer lexicon from consented JDs, JD-corpus RAG, deployed demo with disclosed inference.
 
 ## What I’d tell my past self
@@ -78,4 +78,5 @@ Roadmap: calibration study, richer lexicon from consented JDs, JD-corpus RAG, de
 - **How do you evaluate?** Labeled dev set → accuracy/groundedness; next: human MAE calibration; by `/api/metrics` in live use.
 - **Privacy posture?** In-memory, local inference, aggregate-only metrics; disclaimer shipped in the payload itself.
 - **What failed first?** LLM-phrase grounding (fixed via lexicon gate); header-parsing swallowing bullets (“- Roadmapping and requirement writing” was eaten as a section header); morphology misses (“experiment” vs “experimentation” — fixed with alias + stem matching).
-- **What’s honest about it?** n=4 dev set; unvalidated weights; English-only; lexicon bounded by curated coverage.
+- **What’s different vs the 400 other resume-analyzer portfolios?** Three things: (1) deterministic scoring where the model interprets and the engine computes; (2) an Interview Evidence Map — probes anchored to the exact resume line being probed, classified strong/thin/exposed — diagnosing the interview, not just the document; (3) verified two- and single-column PDF parsing with zero duplicate lines, measured, not claimed.
+- **What’s honest about it?** n=4 dev set; unvalidated weights; English-only; lexicon bounded by curated coverage; skills-list heuristic defeated by column-wrapped lines (occasional generous "matched"); LLM mode varies run-to-run (mitigated by lexicon canonicalisation); hosted demo sends data to a third-party API (disclosed; local mode doesn't).

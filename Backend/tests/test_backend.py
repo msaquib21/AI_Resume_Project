@@ -114,3 +114,15 @@ def test_docx_roundtrip():
 def test_empty_pdf_rejected():
     with pytest.raises(ValueError):
         extract_resume_text("r.pdf", b"")
+
+def test_interview_map_is_generated_and_grounded(monkeypatch):
+    monkeypatch.setattr(analyzer_module, "LLM_MODE", "offline")
+    from Backend.tests.test_backend import SAMPLE_RESUME, SAMPLE_JD
+    result = analyze(SAMPLE_RESUME, SAMPLE_JD, "sample.pdf")
+    assert result.interview_map, "expected interview probes"
+    readiness = {p.readiness for p in result.interview_map}
+    assert "exposed" in readiness  # a/b testing is missing -> must be flagged
+    exposed = [p for p in result.interview_map if p.readiness == "exposed"]
+    assert all(p.grounded_in == "" for p in exposed)  # honest: no fake evidence
+    strong = [p for p in result.interview_map if p.readiness == "strong"]
+    assert all(p.grounded_in for p in strong)  # strong probes anchored in resume

@@ -66,6 +66,36 @@ function SkillChip({ skill }: { skill: SkillAssessment }) {
   );
 }
 
+function InterviewMap({ analysis }: { analysis: AnalysisResponse }) {
+  const probes = analysis.interview_map;
+  if (probes.length === 0) return null;
+  const count = (r: string) => probes.filter((p) => p.readiness === r).length;
+  return (
+    <>
+      <h3 className="results-h3">Interview evidence map</h3>
+      <p className="map-summary">
+        <span className="map-stat map-strong">{count("strong")} ready</span>
+        <span className="map-stat map-thin">{count("thin")} thin</span>
+        <span className="map-stat map-exposed">{count("exposed")} exposed</span>
+        <span className="map-hint">What an interviewer will likely probe, and what they can’t touch.</span>
+      </p>
+      <ol className="probe-list">
+        {probes.map((probe, i) => (
+          <li className={`probe probe-${probe.readiness}`} key={i}>
+            <div className="probe-head">
+              <span className="probe-badge">{probe.readiness}</span>
+              <span className="probe-target">{probe.targets}</span>
+            </div>
+            <p className="probe-question">{probe.question}</p>
+            {probe.grounded_in && <blockquote>“{probe.grounded_in}”</blockquote>}
+            <p className="probe-why">{probe.why}</p>
+          </li>
+        ))}
+      </ol>
+    </>
+  );
+}
+
 function App() {
   const [jobDescription, setJobDescription] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -224,6 +254,11 @@ function App() {
               <div className="disclaimer">ℹ️ {analysis.disclaimer}</div>
 
               <h3 className="results-h3">Skills vs requirements</h3>
+              <div className="skill-legend">
+                <span><i className="dot-matched" />Matched — demonstrated in context</span>
+                <span><i className="dot-partial" />Partial — listed, not shown</span>
+                <span><i className="dot-missing" />No evidence found</span>
+              </div>
               <div className="skill-groups">
                 <div>
                   <p className="skill-group-label">REQUIRED</p>
@@ -250,6 +285,8 @@ function App() {
                 ))}
                 {analysis.recommendations.length === 0 && <p className="muted">No gaps detected by the current rubric.</p>}
               </ul>
+
+              <InterviewMap analysis={analysis} />
 
               <details className="meta">
                 <summary>How this was computed</summary>

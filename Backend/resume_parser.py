@@ -1,5 +1,6 @@
 
 import logging
+import re
 from io import BytesIO
 from pathlib import Path
 from typing import List
@@ -16,6 +17,13 @@ logger = logging.getLogger(__name__)
 # ==========================================================
 # 1. PDF EXTRACTION
 # ==========================================================
+
+def _norm_alnum(text: str) -> str:
+    """Collapse everything except alphanumerics — used to detect that a
+    table's cells re-state text already captured from blocks, even when
+    whitespace differs ('Requirements Gathering' vs 'RequirementsGathering')."""
+    return re.sub(r"[^a-z0-9]", "", text.lower())
+
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     """
@@ -158,14 +166,24 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
                             if row_text.strip():
                                 table_rows.append(row_text)
 
-                        table_text = "\n".join(table_rows).strip()
+                        page_norm = _norm_alnum(page_text)
 
-                        # Avoid duplicate table content.
-                        if (
-                            table_text
-                            and table_text not in page_text
-                        ):
+                        # Row-level check: a row only adds new information if
+                        # at least one of its cells is absent from the block
+                        # text (ignoring alphanumerics). Rows already covered
+                        # by the reading-order pass are dropped entirely.
+                        novel_rows = []
+                        for row in table_rows:
+                            cells = [c for c in row.split(" | ") if c.strip()]
+                            novel = any(
+                                len(_norm_alnum(cell)) >= 8 and _norm_alnum(cell) not in page_norm
+                                for cell in cells
+                            )
+                            if novel:
+                                novel_rows.append(row)
 
+                        table_text = "\n".join(novel_rows).strip()
+                        if table_text:
                             page_text += "\n" + table_text
 
                 except Exception as table_error:
@@ -308,6 +326,32 @@ def extract_text_from_docx(file_bytes: bytes) -> str:
     return extracted_text
 
 
+def _dedupe_lines(text: str) -> str:
+    """Drop repeated lines and page furniture from a multi-page document.
+
+    Compares on alphanumerics only. Exact repeats in a resume are almost
+    always extraction artifacts (page footers, overlay/shadow text), so we
+    keep the first occurrence and drop the rest.
+    """
+    seen = set()
+    out = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            if out and out[-1] != "":
+                out.append("")
+            continue
+        key = _norm_alnum(stripped)
+        if re.fullmatch(r"page\d+of\d+", key):  # "Page 1 of 2"
+            continue
+        # Short full-width banners like "Candidate — Resume" repeat per page
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(stripped)
+    return "\n".join(out).strip()
+
+
 # ==========================================================
 # 3. MAIN RESUME EXTRACTION FUNCTION
 # ==========================================================
@@ -372,10 +416,11 @@ def extract_resume_text(
         )
 
     # ======================================================
-    # FINAL VALIDATION
+    # FINAL CLEANUP & VALIDATION
     # ======================================================
 
     extracted_text = extracted_text.strip()
+    extracted_text = _dedupe_lines(extracted_text)
 
     if not extracted_text:
 

@@ -26,7 +26,8 @@ Paste a job description, upload a resume (PDF/DOCX). ResumeIQ:
 3. **Matches against the resume with cited evidence** — every matched/partial skill quotes the exact resume line; absences are reported as “no evidence found”, never invented.
 4. **Scores deterministically** — a transparent, configurable rubric (skills 40%, experience 25%, responsibilities 20%, preferred 10%, qualifications 5%). The model never invents the score.
 5. **Recommends grounded actions** — learn it / surface it / rewrite it — each tied to the resume line it references.
-6. **Explains itself** — dimension breakdown with weights, extraction mode, latency, request ID, and an explicit “this is decision support, not a hiring probability” disclaimer in the payload.
+6. **Maps your interview** (the differentiator) — an *Interview Evidence Map*: the exact questions an interviewer will probe, anchored to the exact resume line being probed, classified as **strong / thin / exposed**. Scores diagnose; the map prepares you for the conversation the score triggers. No template analyzer does this.
+7. **Explains itself** — dimension breakdown with weights, extraction mode, latency, request ID, and an explicit “this is decision support, not a hiring probability” disclaimer in the payload.
 
 ## Architecture (deliberately simple)
 
@@ -53,6 +54,10 @@ absence reporting, deterministic scoring, and reproducible evaluation — which 
 what we built and measure instead. The v2 path (RAG over a corpus of JDs,
 multi-document candidate memory) is sketched in `docs/PRD.md`.
 
+**Three inference profiles (all €0):** local Ollama (privacy max), hosted free-tier cloud LLM via OpenAI-compatible API (Groq / Gemini / GitHub Models — see `DEPLOYMENT.md`), or deterministic mode (no model at all, nothing leaves the server). The UI and API responses disclose which mode produced the analysis (`extraction_mode`) — no silent fallbacks.
+
+**Verified on real resumes, both layouts:** the parser is tested on multi-column PDF (with tables), single-column PDF, and DOCX — 0 duplicate lines, table content de-duplicated row-by-row against the reading-order pass (`Backend/tests`, `evaluation/`).
+
 ## Quickstart
 
 Prereqs: Python 3.12+, Node 20+, optional Ollama with `qwen2.5:3b`.
@@ -70,6 +75,8 @@ npm run dev          # http://localhost:5173
 ```
 
 Offline / no-LLM mode: set `RESUMEIQ_LLM=offline` (backend). Fully deterministic.
+
+See `DEPLOYMENT.md` for the free public-demo setup (Vercel + Render + free-tier LLM) and `docs/PRD.md` for the decision log.
 
 Useful scripts: `.venv\Scripts\python.exe -m pytest Backend/tests -q` and
 `$env:RESUMEIQ_LLM="offline"; .venv\Scripts\python.exe evaluation\evaluate.py`

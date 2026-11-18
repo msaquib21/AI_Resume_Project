@@ -25,6 +25,16 @@ export interface Recommendation {
   evidence: string;
 }
 
+export type ProbeReadiness = "strong" | "thin" | "exposed";
+
+export interface InterviewProbe {
+  question: string;
+  targets: string;
+  grounded_in: string;
+  readiness: ProbeReadiness;
+  why: string;
+}
+
 export interface JDProfile {
   job_title: string;
   seniority: string;
@@ -51,6 +61,7 @@ export interface AnalysisResponse {
   jd_profile: JDProfile;
   gaps: { critical: string[]; important: string[]; optional: string[]; presentation: string[] };
   recommendations: Recommendation[];
+  interview_map: InterviewProbe[];
   meta: AnalysisMeta;
 }
 

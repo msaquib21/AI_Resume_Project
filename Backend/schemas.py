@@ -46,6 +46,16 @@ class JDProfile(BaseModel):
     qualifications: List[str] = Field(default_factory=list)
 
 
+class InterviewProbe(BaseModel):
+    """One question an interviewer will likely ask, evidence-anchored."""
+    question: str
+    targets: str
+    # Verbatim resume line being probed; empty for STAR / gap probes.
+    grounded_in: str = ""
+    readiness: Literal["strong", "thin", "exposed"]
+    why: str = ""
+
+
 class AnalysisMeta(BaseModel):
     request_id: str
     # How the JD/resume profile was produced: local LLM vs deterministic.
@@ -67,4 +77,5 @@ class AnalysisResponse(BaseModel):
     jd_profile: JDProfile
     gaps: dict = Field(default_factory=dict)  # critical / important / optional
     recommendations: List[Recommendation]
+    interview_map: List[InterviewProbe] = Field(default_factory=list)
     meta: AnalysisMeta

@@ -8,10 +8,10 @@ scoring rubric can be calibrated without touching code.
 import os
 
 # ---------------------------------------------------------------------------
-# LLM (optional). Default: "auto" — use local Ollama if reachable, otherwise
-# fall back to the deterministic extractor. The product works fully offline.
-#   auto    -> try Ollama, fall back gracefully (default)
-#   ollama  -> require Ollama; fail with a clear error if unavailable
+# LLM (optional). The product works fully without any model.
+#   auto    -> Ollama if reachable, else cloud if a key is set, else deterministic (default)
+#   ollama  -> require local Ollama; fail with a clear error if unavailable
+#   cloud   -> require cloud (OpenAI-compatible) provider; fail with a clear error
 #   offline -> never call an LLM; deterministic extraction only
 # ---------------------------------------------------------------------------
 LLM_MODE = os.getenv("RESUMEIQ_LLM", "auto").lower()
@@ -19,6 +19,15 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("RESUMEIQ_OLLAMA_MODEL", "qwen2.5:3b")
 OLLAMA_TIMEOUT_SECONDS = float(os.getenv("RESUMEIQ_OLLAMA_TIMEOUT", "120"))
 OLLAMA_CONNECT_TIMEOUT_SECONDS = float(os.getenv("RESUMEIQ_OLLAMA_CONNECT_TIMEOUT", "4"))
+
+# Cloud (OpenAI-compatible) provider — free tiers work:
+#   Groq:            base https://api.groq.com/openai/v1          model llama-3.3-70b-versatile
+#   Google Gemini:   base https://generativelanguage.googleapis.com/v1beta/openai/  model gemini-2.0-flash
+#   GitHub Models:   base https://models.inference.ai.azure.com   model Llama-3.3-70B-Instruct
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.groq.com/openai/v1")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "llama-3.3-70b-versatile")
+OPENAI_TIMEOUT_SECONDS = float(os.getenv("OPENAI_TIMEOUT_SECONDS", "120"))
 
 # ---------------------------------------------------------------------------
 # Upload limits

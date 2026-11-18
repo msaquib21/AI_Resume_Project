@@ -14,10 +14,11 @@ import time
 import uuid
 from typing import List, Optional, Tuple
 
-from Backend.config import LLM_MODE, OLLAMA_MODEL
+from Backend.config import LLM_MODE, OLLAMA_MODEL, OPENAI_MODEL
 from Backend.jd_parser import parse_jd
 from Backend.evidence import canonicalise_skills, find_line_with_term
-from Backend.llm import extract_jd_profile_llm, ollama_available
+from Backend.interview_map import build_interview_map
+from Backend.llm import cloud_available, extract_jd_profile_llm, ollama_available
 from Backend.scoring import (
     build_dimensions,
     experience_score,
@@ -103,15 +104,25 @@ def analyze(resume_text: str, jd_text: str, filename: str) -> AnalysisResponse:
     # --- JD profile: LLM (if usable) with deterministic fallback ----------
     extraction_mode = "deterministic"
     model = None
-    det_profile, expected_years = parse_jd(jd_text)
-
     llm_profile = None
     if LLM_MODE in ("auto", "ollama") and ollama_available():
-        llm_profile = extract_jd_profile_llm(jd_text)
+        llm_profile = extract_jd_profile_llm(jd_text, "ollama")
+        if llm_profile:
+            model = OLLAMA_MODEL
+    elif LLM_MODE in ("auto", "cloud") and cloud_available():
+        llm_profile = extract_jd_profile_llm(jd_text, "cloud")
+        if llm_profile:
+            model = OPENAI_MODEL
+    elif LLM_MODE == "cloud":
+        raise RuntimeError(
+            "RESUMEIQ_LLM=cloud but OPENAI_API_KEY is not set. "
+            "Configure OPENAI_BASE_URL / OPENAI_API_KEY / OPENAI_MODEL (see DEPLOYMENT.md)."
+        )
+
+    det_profile, expected_years = parse_jd(jd_text)
 
     if llm_profile:
         extraction_mode = "llm"
-        model = OLLAMA_MODEL
         # LLM proposes, lexicon verifies: canonicalise free-text skills onto
         # terms we can evidence. Unmappable skills are dropped, not guessed.
         req = _dedupe(canonicalise_skills(llm_profile["required_skills"]))
@@ -221,5 +232,6 @@ def analyze(resume_text: str, jd_text: str, filename: str) -> AnalysisResponse:
             "presentation": [a.skill for a in assessments if a.status == "partial"],
         },
         recommendations=recommendations,
+        interview_map=build_interview_map(assessments, jd_profile.responsibilities),
         meta=meta,
     )
