@@ -1,5 +1,11 @@
 # ResumeIQ — Evidence-grounded AI resume ↔ job-description analysis
 
+[![Tests](https://img.shields.io/badge/tests-8%20passed-0e6b52?logo=pytest&logoColor=white)](Backend/tests)
+[![Eval](https://img.shields.io/badge/skill%20accuracy-25%2F25-0e6b52)](evaluation/report.md)
+[![Cost](https://img.shields.io/badge/run%20cost-%240.00-a16207)](DEPLOYMENT.md)
+[![License: MIT](https://img.shields.io/badge/license-MIT-211f1c)](LICENSE)
+[![Local-first](https://img.shields.io/badge/local--first-Ollama-111111)](.env.example)
+
 > A local-first, explainable AI product that tells a job seeker **how well their
 > resume matches a specific job description, why, and what to fix** — with every
 > claim tied to verbatim evidence from their own document.
@@ -80,6 +86,9 @@ npm run dev          # http://localhost:5173
 
 Offline / no-LLM mode: set `RESUMEIQ_LLM=offline` (backend). Fully deterministic.
 
+- Google Docs/pandoc-compatible **[AI PM case study PDF](docs/ResumeIQ_AI_PM_Case_Study.pdf)** (15 pages) — simple-words explainer, full stack rationale, honesty ledger, 25 interview questions with answers
+- [Product requirements + decision log](docs/PRD.md) · [Interview case-study narrative](docs/CASE_STUDY.md) · [Evaluation report](evaluation/report.md) · [Free deployment guide](DEPLOYMENT.md)
+
 See `DEPLOYMENT.md` for the free public-demo setup (Vercel + Render + free-tier LLM) and `docs/PRD.md` for the decision log.
 
 Useful scripts: `.venv\Scripts\python.exe -m pytest Backend/tests -q` and
@@ -124,11 +133,10 @@ OCR’d offline with RapidOCR (ONNX models). OCR text is noisier than a real tex
 layer — prefer a text-based PDF (Export → PDF, not Print → PDF) when you can.
 
 **Known limitations (honest list):** lexical matching with aliases + light
-morphology misses paraphrases; the 3B model’s JD extraction varies run-to-run
-(temperature 0.1 but small models drift — we canonicalise its output through the
-lexicon to protect grounding); scoring weights are an unvalidated hypothesis
-(calibration plan in `docs/PRD.md`); hand-labeled n=4 is a dev set, not a
-benchmark claim; India-market bias untested at scale; English resumes only.
+morphology misses paraphrases (RAG on a JD corpus is the roadmap); scoring
+weights are an unvalidated hypothesis (calibration plan in `docs/PRD.md`);
+hand-labeled n=4 is a dev set, not a benchmark claim; India-market bias untested
+at scale; English resumes only.
 
 ## Privacy & trust stance
 
